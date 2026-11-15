@@ -1,45 +1,45 @@
-# Найти скрытую проводимость по редким термометрам
+# Recover a hidden conductivity from a few thermometers
 
-Пластина греется. Тепло идёт быстрее там, где материал лучше проводит. Проводимость нигде не измерена напрямую. Известна температура, и то не везде: датчики стоят на 5% клеток. По этим показаниям нужно восстановить карту проводимости.
+A plate is heating up. Heat moves faster where the material conducts better. Conductivity is never measured directly. Temperature is known, and only in places: sensors cover 5% of the cells. From those readings the conductivity map has to be recovered.
 
-Расчёт идёт в обратную сторону. Сначала температура прогоняется вперёд по уравнению тепла. Потом JAX проходит тот же путь назад и говорит, в какую сторону подвинуть проводимость, чтобы датчики сошлись. Проводимость не может стать отрицательной: она проходит через softplus.
+The calculation runs backwards. First the temperature is rolled forward through the heat equation. Then JAX walks the same path in reverse and says which way to nudge the conductivity so the sensors agree. Conductivity cannot go negative: it passes through a softplus.
 
-Скрытое поле — гладкий горб. На сетке 16×16 он доходит до 1.10. Оптимизатор начинает с ровного поля около 0.74 и горб не видит.
+The hidden field is a smooth bump. On the 16×16 grid it reaches 1.10. The optimizer starts from a flat field near 0.74 and never sees the bump.
 
-![Истинная проводимость и три восстановления](figures/kappa.png)
+![True conductivity and three reconstructions](figures/kappa.png)
 
-Жёлтое — высокая проводимость. Восстановленный горб стоит примерно в том же месте, но он бледнее. При шуме 5% и 10% картинка не разваливается и не уезжает в бесконечность. Похожесть на истинное поле, SSIM, получилась 0.48 без шума, 0.48 при шуме 5% и 0.49 при шуме 10%. Порог задания был 0.85. Он не взят: по пяти процентам клеток высокий узкий горб и более плоское пятно объясняют датчики почти одинаково.
+Yellow is high conductivity. The recovered bump sits in about the same place, and it is paler. With 5% and 10% noise the picture stays finite. It does not blow up. Similarity to the true field, SSIM, is 0.48 with no noise, 0.48 with 5% noise, and 0.49 with 10% noise. The requested limit was 0.85. It is missed: with five percent of the cells, a tall narrow bump and a flatter spot explain the sensors about equally well.
 
-## Что просили и что вышло
+## What was asked, and what came out
 
-| | Просили | Получилось |
+| | Asked | Measured |
 | --- | --- | --- |
-| SSIM при 5% датчиков | больше 0.85 | 0.483 |
-| Шум 5% и 10% не ломает оптимизацию | да | оба поля конечные |
-| Чекпоинтинг снижает память хотя бы на 60% | да | с 321 536 до 23 940 байт, минус 92.6%. Это оперативная память процесса, не память видеокарты |
-| Градиент сходится как остаток второго порядка | да | да, график ниже |
+| SSIM at 5% sensor coverage | above 0.85 | 0.483 |
+| 5% and 10% noise does not break the optimization | yes | both fields stay finite |
+| Checkpointing cuts memory by at least 60% | yes | 321,536 bytes down to 23,940, minus 92.6%. This is the process’s RAM, not GPU memory |
+| The gradient matches a second-order Taylor remainder | yes | yes, the plot below |
 
-До этой версии штраф был квадратом перепадов. SSIM тогда был 0.474, максимум восстановленного поля 0.52. Полная вариация, корень из суммы квадратов соседних перепадов, подняла SSIM до 0.483 и максимум до 0.61. Истинный горб на сетке — 1.10. Высоту восстановить не удалось. Ошибка на самих датчиках при этом падает сильно: с 2.4×10⁻³ до 1.9×10⁻⁵. Датчики объясняются, форма горба нет.
+Before this version the penalty was the square of neighboring jumps. SSIM was then 0.474, and the tallest recovered value was 0.52. Smoothed total variation, the square root of the sum of squared neighbor jumps, raised SSIM to 0.483 and the maximum to 0.61. The true bump on the grid is 1.10. Its height was not recovered. The error on the sensors themselves still drops a lot, from 2.4×10⁻³ to 1.9×10⁻⁵. The sensors are explained. The shape of the bump is not.
 
-## Проверка, что градиент настоящий
+## Checking that the gradient is real
 
-Берётся направление и маленький шаг ε. Считается, насколько настоящий сдвиг функции отличается от сдвига, предсказанного градиентом. Если градиент верный, этот остаток уменьшается как ε².
+Take a direction and a small step ε. Compare the real change in the loss with the change predicted by the gradient. If the gradient is right, the leftover shrinks like ε².
 
-![Остаток Тейлора](figures/taylor.png)
+![Taylor remainder](figures/taylor.png)
 
-Серая линия — остаток, делённый на ε. Когда шаг проверки уменьшается в десять раз, она тоже падает примерно в десять раз. Синяя — остаток, делённый на ε². Она стоит на месте, около 2×10⁻⁷. Так и должен выглядеть второй порядок.
+The gray line is the remainder divided by ε. When the test step shrinks by ten, this line drops by about ten as well. The blue line is the remainder divided by ε². It stays put, near 2×10⁻⁷. That is what second order looks like.
 
-Три точки, из которых собран график:
+The three points the plot is drawn from:
 
-| ε | остаток / ε | остаток / ε² |
+| ε | remainder / ε | remainder / ε² |
 | --- | --- | --- |
 | 10⁻² | 2.18×10⁻⁹ | 2.18×10⁻⁷ |
 | 10⁻³ | 2.24×10⁻¹⁰ | 2.24×10⁻⁷ |
 | 10⁻⁴ | 3.36×10⁻¹¹ | 3.36×10⁻⁷ |
 
-Память экономится так: длинный прогон режется на куски по 4 шага. На обратном пути кусок пересчитывается, а не хранится целиком. Это практическая форма биномиального чекпоинтинга.
+Memory is saved by cutting the long rollout into chunks of 4 steps. On the way back, a chunk is recomputed instead of stored whole. That is a practical form of binomial checkpointing.
 
-## Запуск
+## Run
 
 ```bash
 python3.12 -m venv .venv
@@ -48,4 +48,4 @@ pip install -r requirements.txt
 python -m src.inverse
 ```
 
-Числа — `runs/metrics.json`. Поля проводимости — `runs/kappa_clean.npy` и два файла с шумом.
+The numbers are in `runs/metrics.json`. The conductivity fields are `runs/kappa_clean.npy` and the two noisy files.
