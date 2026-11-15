@@ -1,0 +1,78 @@
+{
+  "sensor_fraction": 0.05078125,
+  "A_ssim": 0.4833776333625318,
+  "A_pass": false,
+  "B_noise": {
+    "noise_5pct": {
+      "ssim": 0.47690830798282474,
+      "finite": true,
+      "max_kappa": 0.6957299113273621,
+      "loss_start": 0.002462558215484023,
+      "loss_end": 2.99901730613783e-05,
+      "pass_no_divergence": true
+    },
+    "noise_10pct": {
+      "ssim": 0.48679037303671807,
+      "finite": true,
+      "max_kappa": 0.4736991822719574,
+      "loss_start": 0.0024198628962039948,
+      "loss_end": 6.299668166320771e-05,
+      "pass_no_divergence": true
+    }
+  },
+  "B_pass": true,
+  "C_memory": {
+    "steps": 24,
+    "naive_temp_bytes": 321536,
+    "binomial_temp_bytes": 23940,
+    "reduction": 0.9255448845541401,
+    "where": "host RAM via XLA temp_size_in_bytes. Not GPU VRAM.",
+    "pass_60pct": true
+  },
+  "D_taylor": {
+    "samples": [
+      {
+        "eps": 0.01,
+        "remainder_over_eps": 2.176166365164267e-09,
+        "remainder_over_eps2": 2.176166365164267e-07
+      },
+      {
+        "eps": 0.001,
+        "remainder_over_eps": 2.23644548518441e-10,
+        "remainder_over_eps2": 2.23644548518441e-07
+      },
+      {
+        "eps": 0.0001,
+        "remainder_over_eps": 3.355420858901898e-11,
+        "remainder_over_eps2": 3.355420858901898e-07
+      }
+    ],
+    "pass_order_two": true
+  },
+  "reconstructions": {
+    "clean": {
+      "ssim": 0.4833776333625318,
+      "finite": true,
+      "max_kappa": 0.6055776476860046,
+      "loss_start": 0.002434899564832449,
+      "loss_end": 1.9336397599545307e-05,
+      "pass_no_divergence": true
+    },
+    "noise_5pct": {
+      "ssim": 0.47690830798282474,
+      "finite": true,
+      "max_kappa": 0.6957299113273621,
+      "loss_start": 0.002462558215484023,
+      "loss_end": 2.99901730613783e-05,
+      "pass_no_divergence": true
+    },
+    "noise_10pct": {
+      "ssim": 0.48679037303671807,
+      "finite": true,
+      "max_kappa": 0.4736991822719574,
+      "loss_start": 0.0024198628962039948,
+      "loss_end": 6.299668166320771e-05,
+      "pass_no_divergence": true
+    }
+  }
+}
